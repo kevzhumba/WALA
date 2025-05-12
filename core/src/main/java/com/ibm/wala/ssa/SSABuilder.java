@@ -224,6 +224,9 @@ public class SSABuilder extends AbstractIntStackMachine {
       if (allTheSame(rhs)) {
         for (int rh : rhs) {
           if (rh != TOP) {
+            if (symbolTable.isConstant(rh)) {
+              return rh;
+            }
             SSACFG.BasicBlock newBB = cfg.getNode(shrikeCFG.getNumber(bb));
             if (loopExits.contains(newBB)) { //|| loopBackEdges.contains(newBB)) {
               // if we already have a phi for this stack location
@@ -275,6 +278,9 @@ public class SSABuilder extends AbstractIntStackMachine {
       if (allTheSame(rhs)) {
         for (int rh : rhs) {
           if (rh != TOP) {
+            if (symbolTable.isConstant(rh)) {
+              return rh;
+            }
             SSACFG.BasicBlock newBB = cfg.getNode(shrikeCFG.getNumber(bb));
             //i don't think we need to do this for back edges or exits anymore, only for exit destinations.
             if (loopExits.contains(newBB)) { // || loopBackEdges.contains(newBB)) {
