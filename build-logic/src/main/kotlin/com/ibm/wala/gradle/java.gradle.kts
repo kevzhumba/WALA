@@ -3,9 +3,11 @@ package com.ibm.wala.gradle
 // Build configuration for subprojects that include Java source code.
 
 import net.ltgt.gradle.errorprone.errorprone
+import org.gradle.jvm.toolchain.JvmVendorSpec
 
 plugins {
   eclipse
+  jacoco
   `java-library`
   `java-test-fixtures`
   `maven-publish`
@@ -17,14 +19,20 @@ plugins {
   id("net.ltgt.errorprone")
 }
 
+jacoco { toolVersion = "0.8.13" }
+
 repositories {
   mavenCentral()
   // to get r8
   maven { url = uri("https://storage.googleapis.com/r8-releases/raw") }
 }
 
-java.toolchain.languageVersion =
-    JavaLanguageVersion.of(property("com.ibm.wala.jdk-version") as String)
+java.toolchain {
+  languageVersion = JavaLanguageVersion.of(property("com.ibm.wala.jdk-version") as String)
+  // We prefer a toolchain that includes jmod files for the Java standard library, like Azul Zulu.
+  // Temurin does not include jmod files as of their JDK 24 builds.
+  vendor = JvmVendorSpec.AZUL
+}
 
 base.archivesName = "com.ibm.wala${path.replace(':', '.')}"
 
@@ -44,6 +52,7 @@ dependencies {
 
   testImplementation(platform(findLibrary("junit-bom")))
   testRuntimeOnly(findLibrary("junit-jupiter-engine"))
+  testRuntimeOnly(findLibrary("junit-platform-launcher"))
   testRuntimeOnly(findLibrary("junit-vintage-engine"))
 }
 

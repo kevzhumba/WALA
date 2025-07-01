@@ -13,8 +13,8 @@ plugins {
   id("com.ibm.wala.gradle.subproject")
 }
 
-val coreResources: Configuration by
-    configurations.creating {
+val coreResources by
+    configurations.registering {
       isCanBeConsumed = false
       isTransitive = false
       attributes {
@@ -22,8 +22,8 @@ val coreResources: Configuration by
       }
     }
 
-val smokeMainExtraPathElements: Configuration by
-    configurations.creating {
+val smokeMainExtraPathElements by
+    configurations.registering {
       isCanBeConsumed = false
       isTransitive = false
       attributes {
@@ -31,8 +31,8 @@ val smokeMainExtraPathElements: Configuration by
       }
     }
 
-fun createXlatorConfig(isOptimized: Boolean): Configuration =
-    configurations.create(
+fun createXlatorConfig(isOptimized: Boolean): NamedDomainObjectProvider<Configuration> =
+    configurations.register(
         "xlatorTest${if (isOptimized) "Release" else "Debug"}SharedLibraryConfig") {
           isCanBeConsumed = false
           isTransitive = false
@@ -64,7 +64,7 @@ application {
       val libxlatorTest =
           (if (isOptimized) xlatorTestReleaseSharedLibraryConfig
               else xlatorTestDebugSharedLibraryConfig)
-              .singleFile
+              .map { it.singleFile }
       addRpath(libxlatorTest)
       addCastLibrary(this@whenElementFinalized)
 
@@ -83,10 +83,11 @@ application {
 
               // xlator Java bytecode + implementation of native methods
               val pathElements = project.objects.listProperty<File>()
-              pathElements.addAll(files("../build/classes/java/test", libxlatorTest.parent))
+              pathElements.addAll(
+                  files("../build/classes/java/test", libxlatorTest.map { it.parent }))
 
               // "primordial.txt" resource loaded during test
-              pathElements.add(coreResources.singleFile)
+              pathElements.add(coreResources.map { it.singleFile })
               inputs.files(coreResources)
 
               // additional supporting Java class files
@@ -97,7 +98,7 @@ application {
               argumentProviders.add { listOf(pathElements.get().joinToString(":")) }
 
               // log output to file, although we don"t validate it
-              val outFile = project.layout.buildDirectory.file("${name}.log")
+              val outFile = layout.buildDirectory.file("${name}.log")
               outputs.file(outFile)
               doFirst {
                 outFile.get().asFile.outputStream().let {

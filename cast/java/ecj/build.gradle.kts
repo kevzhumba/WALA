@@ -12,7 +12,7 @@ walaEclipseMavenCentral {
   )
 }
 
-val runSourceDirectory: Configuration by configurations.creating { isCanBeConsumed = false }
+val runSourceDirectory by configurations.registering { isCanBeConsumed = false }
 
 dependencies {
   implementation(libs.eclipse.ecj)
@@ -33,13 +33,14 @@ application.mainClass = "com.ibm.wala.cast.java.ecj.util.SourceDirCallGraph"
 
 val run by
     tasks.existing(JavaExec::class) {
+      val runSourceDirectoryPath = runSourceDirectory.map { it.files.single().toString() }
       // this is for testing purposes
-      args =
-          listOf(
-              "-sourceDir", runSourceDirectory.files.single().toString(), "-mainClass", "LArray1")
+      argumentProviders.add {
+        listOf("-sourceDir", runSourceDirectoryPath.get(), "-mainClass", "LArray1")
+      }
 
       // log output to file, although we don"t validate it
-      val outFile = project.layout.buildDirectory.file("SourceDirCallGraph.log")
+      val outFile = layout.buildDirectory.file("SourceDirCallGraph.log")
       outputs.file(outFile)
       doFirst {
         outFile.get().asFile.outputStream().let {
