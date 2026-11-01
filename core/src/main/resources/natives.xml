@@ -267,7 +267,7 @@
 			</class>
 			<class name="ClassLoader" allocatable="true">
 				<method name="findBootstrapClass"
-					descriptor="(Ljava/lang/String;)Ljava/lang/Class;">
+					descriptor="(Ljava/lang/String;)Ljava/lang/Class;" static="true">
 					<new def="x" class="Ljava/lang/Class" />
 					<return value="x" />
 				</method>

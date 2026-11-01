@@ -1774,6 +1774,15 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
       Arrays.setAll(previousPtrs, i -> IntSetUtil.getDefaultIntSetFactory().make());
     }
 
+    private InstanceKey[][] withReceiver(InstanceKey[][] params, InstanceKey receiver) {
+      InstanceKey[][] result =
+          params == null
+              ? new InstanceKey[call.getNumberOfPositionalParameters()][]
+              : params.clone();
+      result[0] = new InstanceKey[] {receiver};
+      return result;
+    }
+
     private byte cpa(final PointsToSetVariable[] rhs) {
       final MutableBoolean changed = new MutableBoolean();
       for (int rhsIndex = 0; rhsIndex < rhs.length; rhsIndex++) {
@@ -1798,7 +1807,12 @@ public abstract class SSAPropagationCallGraphBuilder extends PropagationCallGrap
                         CGNode target = getTargetForCall(node, call.getCallSite(), recv, v);
                         if (target != null) {
                           changed.b = true;
-                          processResolvedCall(node, call, target, constParams, uniqueCatch);
+                          // Pass only this receiver to the target's this: an edge from the
+                          // whole receiver variable, filtered by the target's declaring class,
+                          // would also admit receivers that dispatch to an override.
+                          InstanceKey[][] params =
+                              recv == null ? constParams : withReceiver(constParams, v[0]);
+                          processResolvedCall(node, call, target, params, uniqueCatch);
                           if (!haveAlreadyVisited(target)) {
                             markDiscovered(target);
                           }

@@ -22,6 +22,7 @@ import com.ibm.wala.ssa.SSAGotoInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInstructionFactory;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.ssa.SSALoadMetadataInstruction;
 import com.ibm.wala.ssa.SSAMonitorInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
@@ -327,6 +328,11 @@ public class InducedCFG extends AbstractCFG<SSAInstruction, InducedCFG.BasicBloc
       if (j < instructions.length && !r[j]) {
         r[j] = true;
       }
+    }
+
+    @Override
+    public void visitLoadMetadata(SSALoadMetadataInstruction instruction) {
+      breakBasicBlock();
     }
 
     @Override
